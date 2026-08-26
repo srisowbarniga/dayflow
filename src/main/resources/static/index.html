@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dayflow — HR Console</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+
+  :root{
+    --navy:#1a2332;
+    --navy-deep:#10161f;
+    --card:#fffdf7;
+    --paper:#eef0e8;
+    --clock:#e8b04b;
+    --ok:#4f7a5c;
+    --danger:#b5533f;
+    --ink:#1a2332;
+    --muted:#7b8296;
+    --line:#2c384d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    min-height:100vh;
+  }
+
+  /* ================= AUTH SCREEN ================= */
+  #authScreen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--navy-deep);
+    padding:20px;
+  }
+  .auth-box{
+    background:var(--card);
+    width:100%;
+    max-width:420px;
+    border:2px solid var(--clock);
+  }
+  .auth-head{
+    padding:28px 30px 20px;
+    text-align:center;
+    border-bottom:2px solid var(--navy);
+  }
+  .auth-head .punch{
+    width:56px;height:56px;border-radius:50%;
+    border:3px solid var(--clock);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif; font-size:24px; font-weight:600;
+    color:var(--clock);
+    margin:0 auto 14px;
+  }
+  .auth-head .mark{
+    font-family:'Fraunces', serif;
+    font-size:26px;
+    font-weight:600;
+  }
+  .auth-head .tag{
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+  .auth-tabs{display:flex;}
+  .auth-tabs button{
+    flex:1;
+    padding:14px;
+    background:var(--paper);
+    border:none;
+    border-bottom:2px solid var(--navy);
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    color:var(--muted);
+  }
+  .auth-tabs button.active{
+    background:var(--navy);
+    color:#f2efe4;
+    border-bottom-color:var(--navy);
+  }
+  .auth-body{padding:26px 30px 30px;}
+  .auth-body form{display:none; flex-direction:column; gap:12px;}
+  .auth-body form.active{display:flex;}
+  .auth-body input, .auth-body select{
+    padding:11px 12px;
+    border:1.5px solid var(--navy);
+    background:#fdfcf5;
+    font-family:'Space Mono', monospace;
+    font-size:13px;
+  }
+  .auth-body button[type=submit]{
+    margin-top:4px;
+    padding:13px;
+    background:var(--navy);
+    color:#f2efe4;
+    border:none;
+    cursor:pointer;
+    font-size:12.5px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    font-family:'Space Mono', monospace;
+  }
+  .auth-body button[type=submit]:hover{background:var(--clock); color:var(--navy-deep);}
+  .auth-msg{
+    margin-top:14px;
+    font-size:12px;
+    padding:10px 12px;
+    display:none;
+  }
+  .auth-msg.show{display:block;}
+  .auth-msg.err{background:#f6e6e2; color:var(--danger); border:1px solid var(--danger);}
+  .auth-msg.ok{background:#e7f0e8; color:var(--ok); border:1px solid var(--ok);}
+  .auth-hint{font-size:10.5px; color:var(--muted); margin-top:16px; text-align:center; line-height:1.6;}
+
+  /* ================= DASHBOARD ================= */
+  #dashScreen{display:none;}
+
+  .clockbar{
+    background:var(--navy-deep);
+    color:#f2efe4;
+    border-bottom:4px solid var(--clock);
+  }
+  .clockbar-inner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 40px;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .brandmark{display:flex; align-items:center; gap:16px;}
+  .punch-sm{
+    width:44px;height:44px;border-radius:50%;
+    border:2.5px solid var(--clock);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif; font-size:18px; font-weight:600;
+    color:var(--clock);
+    flex-shrink:0;
+  }
+  .brandtext .mark{ font-family:'Fraunces', serif; font-size:24px; font-weight:600; }
+  .brandtext .tag{ font-size:10.5px; color:#9aa4bb; letter-spacing:1.2px; text-transform:uppercase; margin-top:2px; }
+
+  .headright{display:flex; align-items:center; gap:16px;}
+  .whoami{font-size:12px; color:#c9cedb;}
+  .whoami b{color:#f2efe4;}
+  .logout-btn{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    background:transparent;
+    color:#f2efe4;
+    border:1px solid #444f63;
+    padding:8px 14px;
+    cursor:pointer;
+    letter-spacing:0.5px;
+  }
+  .logout-btn:hover{background:var(--danger); border-color:var(--danger);}
+
+  main{padding:44px 40px 60px; max-width:1400px; margin:0 auto;}
+
+  .ledger{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    border:2px solid var(--navy);
+    margin-bottom:40px;
+    background:var(--card);
+  }
+  .ledger .cell{ padding:20px 18px; border-right:2px solid var(--navy); position:relative; }
+  .ledger .cell:last-child{border-right:none;}
+  .ledger .cell .figure{ font-family:'Fraunces', serif; font-size:40px; font-weight:600; line-height:1; }
+  .ledger .cell.pending .figure{color:var(--clock);}
+  .ledger .cell.ok .figure{color:var(--ok);}
+  .ledger .cell.bad .figure{color:var(--danger);}
+  .ledger .cell .cap{ margin-top:8px; font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); }
+  .ledger .cell .idx{ position:absolute; top:10px; right:14px; font-size:10px; color:#c7c2ae; }
+
+  .grid2{ display:grid; grid-template-columns:1.4fr 1fr; gap:28px; margin-bottom:28px; align-items:start; }
+  @media (max-width:960px){ .grid2{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--card); border:2px solid var(--navy); }
+  .panel-head{
+    background:var(--navy); color:#f2efe4; padding:14px 20px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:'Fraunces', serif; font-size:16px; letter-spacing:0.3px;
+  }
+  .panel-head button{
+    font-family:'Space Mono', monospace; font-size:11px;
+    background:transparent; color:#f2efe4;
+    border:1px solid #444f63; padding:6px 12px; cursor:pointer; letter-spacing:0.5px;
+  }
+  .panel-head button:hover{background:var(--clock); color:var(--navy-deep); border-color:var(--clock);}
+  .panel-body{padding:18px 20px 22px;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th{
+    text-align:left; font-size:10px; letter-spacing:0.8px; text-transform:uppercase;
+    color:var(--muted); padding:6px 8px; border-bottom:2px solid var(--navy);
+  }
+  td{padding:11px 8px; border-bottom:1px dashed #cfc9b2; vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .who{font-weight:700;}
+  .idtag{color:var(--muted); font-size:10.5px;}
+
+  .stamp{ display:inline-block; padding:3px 10px; font-size:10px; letter-spacing:0.5px; text-transform:uppercase; border:1.5px solid; }
+  .stamp.pending{color:#9a6a10; border-color:#9a6a10; background:#fbf0d9;}
+  .stamp.approved{color:var(--ok); border-color:var(--ok); background:#e7f0e8;}
+  .stamp.rejected{color:var(--danger); border-color:var(--danger); background:#f6e6e2;}
+
+  .actions button{
+    font-family:'Space Mono', monospace; font-size:10.5px; padding:5px 10px; margin-right:6px;
+    border:1.5px solid var(--navy); background:#fff; cursor:pointer;
+  }
+  .actions .approve:hover{background:var(--ok); color:#fff; border-color:var(--ok);}
+  .actions .reject:hover{background:var(--danger); color:#fff; border-color:var(--danger);}
+
+  form.apply{display:grid; gap:12px;}
+  form.apply input, form.apply select{
+    padding:10px 12px; border:1.5px solid var(--navy); background:#fdfcf5;
+    font-family:'Space Mono', monospace; font-size:12.5px;
+  }
+  form.apply .row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  form.apply button{
+    margin-top:2px; padding:12px; background:var(--navy); color:#f2efe4; border:none; cursor:pointer;
+    font-size:12.5px; letter-spacing:1px; text-transform:uppercase; font-family:'Space Mono', monospace;
+  }
+  form.apply button:hover{background:var(--clock); color:var(--navy-deep);}
+
+  .checkin-row{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .checkin-row input{
+    padding:10px 12px; border:1.5px solid var(--navy); background:#fdfcf5;
+    font-family:'Space Mono', monospace; font-size:12.5px; flex:1; min-width:140px;
+  }
+  .checkin-row button{
+    padding:10px 18px; background:var(--ok); color:#fff; border:none; cursor:pointer;
+    font-family:'Space Mono', monospace; font-size:11.5px; letter-spacing:0.5px; text-transform:uppercase;
+  }
+  .checkin-row button:hover{opacity:0.85;}
+
+  .empty{color:var(--muted); font-size:12px; padding:18px 4px;}
+  .footnote{ font-size:10.5px; color:var(--muted); text-align:center; margin-top:24px; letter-spacing:0.3px; }
+  code{background:#e3ddc4; padding:2px 6px;}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-head">
+      <div class="punch">D</div>
+      <div class="mark">Dayflow</div>
+      <div class="tag">HR Console Access</div>
+    </div>
+    <div class="auth-tabs">
+      <button id="tabSignin" class="active" onclick="switchTab('signin')">Sign In</button>
+      <button id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div class="auth-body">
+      <form id="signinForm" class="active" onsubmit="doSignin(event)">
+        <input type="email" id="siEmail" placeholder="Email" required>
+        <input type="password" id="siPassword" placeholder="Password" required>
+        <button type="submit">Sign In →</button>
+      </form>
+      <form id="signupForm" onsubmit="doSignup(event)">
+        <input type="text" id="suEmployeeId" placeholder="Employee ID" required>
+        <input type="text" id="suName" placeholder="Full Name" required>
+        <input type="email" id="suEmail" placeholder="Email" required>
+        <input type="password" id="suPassword" placeholder="Password" required>
+        <select id="suRole" required>
+          <option value="">— Role —</option>
+          <option value="EMPLOYEE">Employee</option>
+          <option value="HR">HR / Admin</option>
+        </select>
+        <button type="submit">Create Account →</button>
+      </form>
+      <div class="auth-msg" id="authMsg"></div>
+      <div class="auth-hint">Backend must be running at <code>localhost:8080</code></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD SCREEN ===== -->
+<div id="dashScreen">
+  <div class="clockbar">
+    <div class="clockbar-inner">
+      <div class="brandmark">
+        <div class="punch-sm">D</div>
+        <div class="brandtext">
+          <div class="mark">Dayflow</div>
+          <div class="tag">HR Console — Every workday, punched in on time</div>
+        </div>
+      </div>
+      <div class="headright">
+        <div class="whoami">Signed in as <b id="whoName">—</b></div>
+        <button class="logout-btn" onclick="logout()">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="ledger" id="ledger">
+      <div class="cell"><div class="idx">01</div><div class="figure">–</div><div class="cap">Employees</div></div>
+      <div class="cell"><div class="idx">02</div><div class="figure">–</div><div class="cap">Total Leaves</div></div>
+      <div class="cell pending"><div class="idx">03</div><div class="figure">–</div><div class="cap">Pending</div></div>
+      <div class="cell ok"><div class="idx">04</div><div class="figure">–</div><div class="cap">Approved</div></div>
+      <div class="cell bad"><div class="idx">05</div><div class="figure">–</div><div class="cap">Rejected</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-head">Leave Ledger <button onclick="loadLeaves()">↻ Refresh</button></div>
+        <div class="panel-body">
+          <table>
+            <thead><tr><th>Employee</th><th>Type</th><th>Window</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="leaveRows"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">File a Leave</div>
+        <div class="panel-body">
+          <form class="apply" onsubmit="applyLeave(event)">
+            <div class="row">
+              <input type="number" id="empId" placeholder="Employee ID" required>
+              <input type="text" id="empName" placeholder="Employee Name" required>
+            </div>
+            <select id="leaveType" required>
+              <option value="">— Leave Type —</option>
+              <option>Paid</option><option>Sick</option><option>Unpaid</option>
+            </select>
+            <div class="row">
+              <input type="date" id="startDate" required>
+              <input type="date" id="endDate" required>
+            </div>
+            <input type="text" id="remarks" placeholder="Remarks">
+            <button type="submit">Punch In Request →</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">Time Clock — Today <button onclick="loadAttendance()">↻ Refresh</button></div>
+      <div class="panel-body">
+        <div class="checkin-row">
+          <input type="number" id="attEmpId" placeholder="Employee ID">
+          <input type="text" id="attEmpName" placeholder="Employee Name">
+          <button onclick="checkIn()">Check In</button>
+        </div>
+        <table>
+          <thead><tr><th>Employee</th><th>Date</th><th>In</th><th>Out</th><th>Status</th></tr></thead>
+          <tbody id="attRows"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footnote">LIVE FEED FROM <code>localhost:8080</code></div>
+  </main>
+</div>
+
+<script>
+const BASE = "http://localhost:8080";
+let currentUser = null;
+
+function switchTab(tab){
+  document.getElementById('tabSignin').classList.toggle('active', tab==='signin');
+  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+  document.getElementById('signinForm').classList.toggle('active', tab==='signin');
+  document.getElementById('signupForm').classList.toggle('active', tab==='signup');
+  hideMsg();
+}
+function showMsg(text, type){
+  const m = document.getElementById('authMsg');
+  m.textContent = text;
+  m.className = 'auth-msg show ' + type;
+}
+function hideMsg(){
+  document.getElementById('authMsg').className = 'auth-msg';
+}
+
+async function doSignup(e){
+  e.preventDefault();
+  const body = {
+    employeeId: document.getElementById('suEmployeeId').value,
+    name: document.getElementById('suName').value,
+    email: document.getElementById('suEmail').value,
+    password: document.getElementById('suPassword').value,
+    role: document.getElementById('suRole').value
+  };
+  try{
+    const res = await fetch(BASE + "/api/auth/signup", {
+      method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
+    });
+    if(res.ok){
+      showMsg("Account created — you can sign in now.", "ok");
+      switchTab('signin');
+      document.getElementById('siEmail').value = body.email;
+    } else {
+      showMsg("Signup failed — check details and try again.", "err");
+    }
+  }catch(err){
+    showMsg("Backend not reachable at localhost:8080.", "err");
+  }
+}
+
+async function doSignin(e){
+  e.preventDefault();
+  const body = {
+    email: document.getElementById('siEmail').value,
+    password: document.getElementById('siPassword').value
+  };
+  try{
+    const res = await fetch(BASE + "/api/auth/signin", {
+      method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(data.message === "Login successful"){
+      currentUser = { email: body.email, token: data.token };
+      sessionStorage.setItem('dayflow_user', JSON.stringify(currentUser));
+      enterDashboard();
+    } else {
+      showMsg(data.message || "Invalid email or password.", "err");
+    }
+  }catch(err){
+    showMsg("Backend not reachable at localhost:8080.", "err");
+  }
+}
+
+function logout(){
+  currentUser = null;
+  sessionStorage.removeItem('dayflow_user');
+  document.getElementById('dashScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+function enterDashboard(){
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('dashScreen').style.display = 'block';
+  document.getElementById('whoName').textContent = currentUser.email;
+  loadSummary(); loadLeaves(); loadAttendance();
+}
+
+async function loadSummary(){
+  try{
+    const res = await fetch(BASE + "/api/analytics/summary");
+    const d = await res.json();
+    document.getElementById('ledger').innerHTML = `
+      <div class="cell"><div class="idx">01</div><div class="figure">${d.totalEmployees ?? 0}</div><div class="cap">Employees</div></div>
+      <div class="cell"><div class="idx">02</div><div class="figure">${d.totalLeaves ?? 0}</div><div class="cap">Total Leaves</div></div>
+      <div class="cell pending"><div class="idx">03</div><div class="figure">${d.pendingLeaves ?? 0}</div><div class="cap">Pending</div></div>
+      <div class="cell ok"><div class="idx">04</div><div class="figure">${d.approvedLeaves ?? 0}</div><div class="cap">Approved</div></div>
+      <div class="cell bad"><div class="idx">05</div><div class="figure">${d.rejectedLeaves ?? 0}</div><div class="cap">Rejected</div></div>
+    `;
+  }catch(e){}
+}
+
+async function loadLeaves(){
+  const tbody = document.getElementById('leaveRows');
+  try{
+    const res = await fetch(BASE + "/api/leaves/all");
+    const list = await res.json();
+    if(!list.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty">No entries in the ledger yet.</td></tr>'; return; }
+    tbody.innerHTML = list.map(l => `
+      <tr>
+        <td><div class="who">${l.employeeName ?? '—'}</div><div class="idtag">ID ${l.employeeId}</div></td>
+        <td>${l.leaveType ?? '—'}</td>
+        <td>${l.startDate ?? ''} → ${l.endDate ?? ''}</td>
+        <td><span class="stamp ${(l.status||'').toLowerCase()}">${l.status ?? '—'}</span></td>
+        <td class="actions">
+          ${l.status === 'Pending' ? `
+            <button class="approve" onclick="approveLeave(${l.id})">Approve</button>
+            <button class="reject" onclick="rejectLeave(${l.id})">Reject</button>
+          ` : '—'}
+        </td>
+      </tr>
+    `).join('');
+  }catch(e){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Signal lost — is the backend running?</td></tr>';
+  }
+}
+
+async function loadAttendance(){
+  const tbody = document.getElementById('attRows');
+  try{
+    const res = await fetch(BASE + "/api/attendance/all");
+    const list = await res.json();
+    if(!list.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty">No punches recorded yet.</td></tr>'; return; }
+    tbody.innerHTML = list.map(a => `
+      <tr>
+        <td><div class="who">${a.employeeName ?? '—'}</div><div class="idtag">ID ${a.employeeId}</div></td>
+        <td>${a.date ?? '—'}</td>
+        <td>${a.checkIn ?? '—'}</td>
+        <td>${a.checkOut ?? '—'}</td>
+        <td><span class="stamp approved">${a.status ?? '—'}</span></td>
+      </tr>
+    `).join('');
+  }catch(e){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Signal lost — is the backend running?</td></tr>';
+  }
+}
+
+async function checkIn(){
+  const id = document.getElementById('attEmpId').value;
+  const name = document.getElementById('attEmpName').value;
+  if(!id || !name){ alert("Enter employee ID and name to check in."); return; }
+  try{
+    await fetch(BASE + "/api/attendance/checkin", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({employeeId:Number(id), employeeName:name})
+    });
+    document.getElementById('attEmpId').value = '';
+    document.getElementById('attEmpName').value = '';
+    await loadAttendance();
+  }catch(e){ alert("Could not check in — backend running?"); }
+}
+
+async function applyLeave(e){
+  e.preventDefault();
+  const body = {
+    employeeId: Number(document.getElementById('empId').value),
+    employeeName: document.getElementById('empName').value,
+    leaveType: document.getElementById('leaveType').value,
+    startDate: document.getElementById('startDate').value,
+    endDate: document.getElementById('endDate').value,
+    remarks: document.getElementById('remarks').value
+  };
+  try{
+    await fetch(BASE + "/api/leaves/apply", {
+      method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)
+    });
+    e.target.reset();
+    await loadLeaves(); await loadSummary();
+  }catch(err){ alert("Could not submit — check backend is running."); }
+}
+
+async function approveLeave(id){
+  await fetch(`${BASE}/api/leaves/${id}/approve`, {method:"PUT"});
+  await loadLeaves(); await loadSummary();
+}
+async function rejectLeave(id){
+  await fetch(`${BASE}/api/leaves/${id}/reject`, {method:"PUT"});
+  await loadLeaves(); await loadSummary();
+}
+
+// Restore session if already signed in
+const saved = sessionStorage.getItem('dayflow_user');
+if(saved){
+  currentUser = JSON.parse(saved);
+  enterDashboard();
+}
+</script>
+
+</body>
+</html>
